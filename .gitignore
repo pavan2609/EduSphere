@@ -1,0 +1,29 @@
+# Java
+*.class
+
+# Maven
+target/
+
+# Gradle
+build/
+.gradle/
+
+# Node
+node_modules/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
