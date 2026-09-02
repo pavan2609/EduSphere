@@ -1,6 +1,7 @@
 package com.edusphere.backend.controller;
 
-import com.edusphere.backend.entity.User;
+import com.edusphere.backend.dto.RegisterRequestDto;
+import com.edusphere.backend.dto.UserResponseDto;
 import com.edusphere.backend.service.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,8 +17,8 @@ public class AuthController {
 	}
 
 	@PostMapping("/register")
-	public ResponseEntity<User> register(@RequestBody User user) {
-		User registeredUser = userService.registerUser(user);
-		return ResponseEntity.status(HttpStatus.CREATED).body(registeredUser);
+	public ResponseEntity<UserResponseDto> register(@RequestBody RegisterRequestDto request) {
+		UserResponseDto response = userService.registerUser(request);
+		return ResponseEntity.status(HttpStatus.CREATED).body(response);
 	}
 }
