@@ -6,6 +6,8 @@ import com.edusphere.backend.service.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.edusphere.backend.dto.LoginRequestDto;
+import com.edusphere.backend.dto.LoginResponseDto;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -21,4 +23,11 @@ public class AuthController {
 		UserResponseDto response = userService.registerUser(request);
 		return ResponseEntity.status(HttpStatus.CREATED).body(response);
 	}
+
+	@PostMapping("/login")
+	public ResponseEntity<LoginResponseDto> login(@RequestBody LoginRequestDto request) {
+		LoginResponseDto response = userService.loginUser(request);
+		return ResponseEntity.ok(response);
+	}
+
 }
