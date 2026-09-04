@@ -5,11 +5,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/test")
-public class TestController {
+@RequestMapping("/api/instructor")
+public class InstructorController {
 
-    @GetMapping("/hello")
-    public String hello() {
-        return "JWT authentication is working!";
+    @GetMapping("/dashboard")
+    public String instructorDashboard() {
+        return "Welcome to Instructor Dashboard";
     }
 }
