@@ -4,6 +4,7 @@ public class LoginResponseDto {
 
     private String message;
     private String token;
+    private String refreshToken;
     private Long userId;
     private String name;
     private String email;
@@ -12,15 +13,18 @@ public class LoginResponseDto {
     public LoginResponseDto() {
     }
 
-    public LoginResponseDto(String message,
-                            String token,
-                            Long userId,
-                            String name,
-                            String email,
-                            String role) {
+    public LoginResponseDto(
+            String message,
+            String token,
+            String refreshToken,
+            Long userId,
+            String name,
+            String email,
+            String role) {
 
         this.message = message;
         this.token = token;
+        this.refreshToken = refreshToken;
         this.userId = userId;
         this.name = name;
         this.email = email;
@@ -41,6 +45,14 @@ public class LoginResponseDto {
 
     public void setToken(String token) {
         this.token = token;
+    }
+
+    public String getRefreshToken() {
+        return refreshToken;
+    }
+
+    public void setRefreshToken(String refreshToken) {
+        this.refreshToken = refreshToken;
     }
 
     public Long getUserId() {

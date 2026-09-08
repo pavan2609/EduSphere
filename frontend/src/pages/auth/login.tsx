@@ -3,6 +3,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Link, useNavigate } from "react-router-dom";
 import { loginUser } from "../../services/authService";
+import { useAuth } from "../../context/AuthContext";
 
 const loginSchema = z.object({
   email: z
@@ -19,6 +20,7 @@ type LoginFormData = z.infer<typeof loginSchema>;
 
 function Login() {
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const {
     register,
@@ -30,17 +32,24 @@ function Login() {
   });
 
   const onSubmit = async (data: LoginFormData) => {
-    try {
-      const response = await loginUser(data);
+      try {
+          const response = await loginUser(data);
 
-      console.log("Login response:", response);
+          console.log("Login response:", response);
+        localStorage.setItem("accessToken", response.token);
+        localStorage.setItem("refreshToken", response.refreshToken);
+        
+          login(response.token, {
+              id: response.userId,
+              name: response.name,
+              email: response.email,
+              role: response.role,
+          });
 
-      localStorage.setItem("accessToken", response.token);
-
-      if (response.role === "ADMIN") {
-        navigate("/admin/dashboard");
-      } else if (response.role === "INSTRUCTOR") {
-        navigate("/instructor/dashboard");
+          if (response.role === "ADMIN") {
+              navigate("/admin/dashboard");
+          } else if (response.role === "INSTRUCTOR") {
+              navigate("/instructor/dashboard");
       } else {
         navigate("/student/dashboard");
       }

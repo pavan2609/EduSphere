@@ -61,10 +61,13 @@ public class UserService {
 	            user.getEmail(),
 	            user.getRole()
 	    );
-
+	    String refreshToken = jwtService.generateRefreshToken(
+                user.getEmail()
+        );
 	    return new LoginResponseDto(
 	            "Login successful",
 	            token,
+	            refreshToken,
 	            user.getId(),
 	            user.getName(),
 	            user.getEmail(),

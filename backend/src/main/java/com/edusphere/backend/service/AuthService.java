@@ -85,13 +85,32 @@ public class AuthService {
                 user.getEmail(),
                 user.getRole()
         );
-
+        String refreshToken = jwtService.generateRefreshToken(
+                user.getEmail()
+        );
         // 4. Return login response
         return new LoginResponseDto(
                 "Login successful",
                 token,
+                refreshToken,
                 user.getId(),
                 user.getName(),
+                user.getEmail(),
+                user.getRole()
+        );
+    }
+    public String refreshAccessToken(String refreshToken) {
+
+        if (!jwtService.isTokenValid(refreshToken)) {
+            throw new RuntimeException("Invalid or expired refresh token");
+        }
+
+        String email = jwtService.extractEmailFromRefreshToken(refreshToken);
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        return jwtService.generateToken(
                 user.getEmail(),
                 user.getRole()
         );

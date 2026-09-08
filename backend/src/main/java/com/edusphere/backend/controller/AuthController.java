@@ -10,6 +10,10 @@ import com.edusphere.backend.dto.RegisterRequestDto;
 import com.edusphere.backend.dto.UserResponseDto;
 import com.edusphere.backend.service.AuthService;
 
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+
+import com.edusphere.backend.dto.RefreshTokenRequestDto;
 import jakarta.validation.Valid;
 
 @RestController
@@ -40,6 +44,20 @@ public class AuthController {
         LoginResponseDto response = authService.login(request);
 
         return ResponseEntity.ok(response);
+    }
+    @PostMapping("/refresh")
+    public ResponseEntity<?> refreshToken(
+            @RequestBody RefreshTokenRequestDto request) {
+
+        String newAccessToken =
+                authService.refreshAccessToken(request.getRefreshToken());
+
+        return ResponseEntity.ok(
+                java.util.Map.of(
+                        "accessToken",
+                        newAccessToken
+                )
+        );
     }
 }
 

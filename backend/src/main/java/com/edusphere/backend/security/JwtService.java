@@ -39,6 +39,19 @@ public class JwtService {
                 .signWith(getSigningKey())
                 .compact();
     }
+    public String generateRefreshToken(String email) {
+        Date now = new Date();
+
+        Date refreshExpiryDate =
+                new Date(now.getTime() + (7L * 24 * 60 * 60 * 1000));
+
+        return Jwts.builder()
+                .subject(email)
+                .issuedAt(now)
+                .expiration(refreshExpiryDate)
+                .signWith(getSigningKey())
+                .compact();
+    }
 
     public String extractEmail(String token) {
 
@@ -55,7 +68,7 @@ public class JwtService {
             return false;
         }
     }
-
+    
     private Claims getClaims(String token) {
 
         return Jwts.parser()
@@ -63,5 +76,8 @@ public class JwtService {
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();
+    }
+    public String extractEmailFromRefreshToken(String token) {
+        return getClaims(token).getSubject();
     }
 }
