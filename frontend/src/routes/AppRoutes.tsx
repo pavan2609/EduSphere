@@ -1,8 +1,8 @@
 import {
-  BrowserRouter,
-  Routes,
-  Route,
-  Navigate,
+    BrowserRouter,
+    Routes,
+    Route,
+    Navigate,
 } from "react-router-dom";
 import Login from "../pages/auth/login";
 import Register from "../pages/auth/register";
@@ -12,107 +12,115 @@ import AdminDashboard from "../pages/admin/AdminDashboard";
 import StudentDashboard from "../pages/student/StudentDashboard";
 import InstructorDashboard from "../pages/instructor/InstructorDashboard";
 
+import CreateCourse from "../pages/instructor/CreateCourse";
+import InstructorCourses from "../pages/instructor/InstructorCourses";
+import CourseEditor from "../pages/instructor/CourseEditor";
 const AdminUsers = () => {
-  return <h1>User Management</h1>;
+    return <h1>User Management</h1>;
 };
 
-const InstructorCourses = () => {
-  return <h1>My Courses</h1>;
-};
 
 const StudentCourses = () => {
-  return <h1>Course Catalog</h1>;
+    return <h1>Course Catalog</h1>;
 };
 
 const StudentMyCourses = () => {
-  return <h1>My Learning</h1>;
+    return <h1>My Learning</h1>;
 };
 
 const AppRoutes = () => {
-  return (
-    <BrowserRouter>
-      <Routes>
+    return (
+        <BrowserRouter>
+            <Routes>
 
-        {/* Public Routes */}
+                {/* Public Routes */}
 
-        <Route path="/login" element={<Login />} />
+                <Route path="/login" element={<Login />} />
 
-        <Route path="/register" element={<Register />} />
-
-
-        {/* Protected Application */}
-
-        <Route element={<ProtectedRoute allowedRoles={["ADMIN"]} />}>
-          <Route element={<MainLayout />}>
-
-            <Route
-              path="/admin/dashboard"
-              element={<AdminDashboard />}
-            />
-
-            <Route
-              path="/admin/users"
-              element={<AdminUsers />}
-            />
-
-          </Route>
-        </Route>
+                <Route path="/register" element={<Register />} />
 
 
-        <Route element={<ProtectedRoute allowedRoles={["INSTRUCTOR"]} />}>
-          <Route element={<MainLayout />}>
+                {/* Protected Application */}
 
-            <Route
-              path="/instructor/dashboard"
-              element={<InstructorDashboard />}
-            />
+                <Route element={<ProtectedRoute allowedRoles={["ADMIN"]} />}>
+                    <Route element={<MainLayout />}>
 
-            <Route
-              path="/instructor/courses"
-              element={<InstructorCourses />}
-            />
+                        <Route
+                            path="/admin/dashboard"
+                            element={<AdminDashboard />}
+                        />
 
-          </Route>
-        </Route>
+                        <Route
+                            path="/admin/users"
+                            element={<AdminUsers />}
+                        />
 
-
-        <Route element={<ProtectedRoute allowedRoles={["STUDENT"]} />}>
-          <Route element={<MainLayout />}>
-
-            <Route
-              path="/student/dashboard"
-              element={<StudentDashboard />}
-            />
-
-            <Route
-              path="/student/courses"
-              element={<StudentCourses />}
-            />
-
-            <Route
-              path="/student/my-courses"
-              element={<StudentMyCourses />}
-            />
-
-          </Route>
-        </Route>
+                    </Route>
+                </Route>
 
 
-        {/* Default */}
+                <Route element={<ProtectedRoute allowedRoles={["INSTRUCTOR"]} />}>
+                    <Route element={<MainLayout />}>
 
-        <Route
-          path="/"
-          element={<Navigate to="/login" replace />}
-        />
+                        <Route
+                            path="/instructor/dashboard"
+                            element={<InstructorDashboard />}
+                        />
 
-        <Route
-          path="*"
-          element={<Navigate to="/login" replace />}
-        />
+                        <Route
+                            path="/instructor/courses"
+                            element={<InstructorCourses />}
+                        />
 
-      </Routes>
-    </BrowserRouter>
-  );
+                        <Route
+                            path="/instructor/courses/create"
+                            element={<CreateCourse />}
+                        />
+                        <Route
+                            path="/instructor/courses/:courseId"
+                            element={<CourseEditor />}
+                        />
+                    </Route>
+                </Route>
+
+
+                <Route element={<ProtectedRoute allowedRoles={["STUDENT"]} />}>
+                    <Route element={<MainLayout />}>
+
+                        <Route
+                            path="/student/dashboard"
+                            element={<StudentDashboard />}
+                        />
+
+                        <Route
+                            path="/student/courses"
+                            element={<StudentCourses />}
+                        />
+
+                        <Route
+                            path="/student/my-courses"
+                            element={<StudentMyCourses />}
+                        />
+
+                    </Route>
+                </Route>
+
+
+                {/* Default */}
+
+                <Route
+                    path="/"
+                    element={<Navigate to="/login" replace />}
+                />
+
+                <Route
+                    path="*"
+                    element={<Navigate to="/login" replace />}
+                />
+
+            </Routes>
+        </BrowserRouter>
+    );
 };
 
 export default AppRoutes;
