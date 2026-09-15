@@ -3,6 +3,7 @@ import api from "../api/axios";
 export interface CourseRequest {
   title: string;
   description: string;
+    maxSeats: number;
 }
 
 export interface CourseResponse {

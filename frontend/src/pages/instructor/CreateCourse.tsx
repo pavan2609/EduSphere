@@ -17,6 +17,11 @@ const courseSchema = z.object({
     .string()
     .min(10, "Description must be at least 10 characters")
     .max(2000, "Description cannot exceed 2000 characters"),
+
+  maxSeats: z
+    .number()
+    .int("Maximum seats must be a whole number")
+    .positive("Maximum seats must be greater than zero"),
 });
 
 type CourseFormData = z.infer<typeof courseSchema>;
@@ -30,6 +35,11 @@ const CreateCourse = () => {
     formState: { errors, isSubmitting },
   } = useForm<CourseFormData>({
     resolver: zodResolver(courseSchema),
+    defaultValues: {
+  title: "",
+  description: "",
+  maxSeats: 30,
+},
   });
 
   const onSubmit = async (data: CourseFormData) => {
@@ -46,49 +56,96 @@ const CreateCourse = () => {
   };
 
   return (
-    <div>
-      <h1>Create Course</h1>
+    <div className="page-container">
 
-      <form onSubmit={handleSubmit(onSubmit)}>
-
+      <div className="page-header">
         <div>
-          <label>Course Title</label>
-
-          <input
-            type="text"
-            {...register("title")}
-          />
-
-          {errors.title && (
-            <p>{errors.title.message}</p>
-          )}
+          <h1>Create Course</h1>
+          <p>
+            Create a new course and start adding
+            modules and lessons.
+          </p>
         </div>
+      </div>
 
-        <div>
-          <label>Description</label>
+      <div className="card">
 
-          <textarea
-            rows={6}
-            {...register("description")}
-          />
-
-          {errors.description && (
-            <p>
-              {errors.description.message}
-            </p>
-          )}
-        </div>
-
-        <button
-          type="submit"
-          disabled={isSubmitting}
+        <form
+          className="auth-form"
+          onSubmit={handleSubmit(onSubmit)}
         >
-          {isSubmitting
-            ? "Creating..."
-            : "Create Course"}
-        </button>
 
-      </form>
+          <div className="form-group">
+            <label htmlFor="title">
+              Course Title
+            </label>
+
+            <input
+              id="title"
+              type="text"
+              placeholder="Enter course title"
+              {...register("title")}
+            />
+
+            {errors.title && (
+              <p className="form-error">
+                {errors.title.message}
+              </p>
+            )}
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="description">
+              Description
+            </label>
+
+            <textarea
+              id="description"
+              rows={8}
+              placeholder="Enter course description"
+              {...register("description")}
+            />
+
+            {errors.description && (
+              <p className="form-error">
+                {errors.description.message}
+              </p>
+            )}
+          </div>
+            <div className="form-group">
+  <label htmlFor="maxSeats">
+    Maximum Seats
+  </label>
+
+  <input
+    id="maxSeats"
+    type="number"
+    min="1"
+    {...register("maxSeats", {
+      valueAsNumber: true,
+    })}
+    placeholder="Enter maximum seats"
+  />
+
+  {errors.maxSeats && (
+    <p className="form-error">
+      {errors.maxSeats.message}
+    </p>
+  )}
+</div>
+          <button
+            type="submit"
+            disabled={isSubmitting}
+          >
+            {isSubmitting
+              ? "Creating..."
+              : "Create Course"}
+          </button>
+
+        </form>
+
+      </div>
+
     </div>
   );
 };

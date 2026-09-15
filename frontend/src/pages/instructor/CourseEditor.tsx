@@ -54,6 +54,10 @@ const courseSchema = z.object({
         .string()
         .min(10, "Course description must be at least 10 characters")
         .max(2000, "Course description cannot exceed 2000 characters"),
+      maxSeats: z
+    .number()
+    .int("Maximum seats must be a whole number")
+    .positive("Maximum seats must be greater than zero"),
 });
 
 type CourseFormData = z.infer<typeof courseSchema>;
@@ -771,160 +775,210 @@ const handleDeleteLessonFile = async (
     // UI
     // =========================
 
+    
     return (
-        <div>
+        <div className="course-editor">
+
             {/* =========================
-          Course Header
-      ========================= */}
+                Course Header
+            ========================= */}
 
-            <div>
-                <Link to="/instructor/courses">
-                    ← Back to My Courses
-                </Link>
+            <div className="page-header">
+                <div>
+                    <Link
+                        to="/instructor/courses"
+                        className="back-link"
+                    >
+                        ← Back to My Courses
+                    </Link>
 
-                <h1>Manage Course</h1>
+                    <h1>Manage Course</h1>
 
-                <p>
-                    <strong>Status:</strong> {course.status}
-                </p>
+                    <div>
+                        <span className="status-label">
+                            Status:
+                        </span>
+
+                        <span
+                            className={`status-badge ${
+                                course.status === "PUBLISHED"
+                                    ? "status-published"
+                                    : "status-draft"
+                            }`}
+                        >
+                            {course.status}
+                        </span>
+                    </div>
+                </div>
             </div>
 
             {/* =========================
-          Messages
-      ========================= */}
+                Messages
+            ========================= */}
 
             {success && (
-                <p style={{ color: "green" }}>
+                <p className="success-message">
                     {success}
                 </p>
             )}
 
             {error && (
-                <p style={{ color: "red" }}>
+                <p className="error-message">
                     {error}
                 </p>
             )}
 
             {/* =========================
-          Course Form
-      ========================= */}
+                Course Details
+            ========================= */}
 
-            <form onSubmit={handleSubmit(onSubmit)}>
-                <div>
-                    <label htmlFor="title">
-                        Course Title
-                    </label>
+            <section className="course-editor-section">
 
-                    <br />
-
-                    <input
-                        id="title"
-                        type="text"
-                        {...register("title")}
-                    />
-
-                    {errors.title && (
-                        <p style={{ color: "red" }}>
-                            {errors.title.message}
+                <div className="course-editor-section-header">
+                    <div>
+                        <h2>Course Details</h2>
+                        <p>
+                            Update your course information.
                         </p>
-                    )}
+                    </div>
                 </div>
 
-                <br />
+                <form onSubmit={handleSubmit(onSubmit)}>
 
-                <div>
-                    <label htmlFor="description">
-                        Course Description
-                    </label>
+                    <div className="form-group">
+                        <label htmlFor="title">
+                            Course Title
+                        </label>
 
-                    <br />
+                        <input
+                            id="title"
+                            type="text"
+                            {...register("title")}
+                        />
 
-                    <textarea
-                        id="description"
-                        rows={8}
-                        {...register("description")}
-                    />
+                        {errors.title && (
+                            <p className="form-error">
+                                {errors.title.message}
+                            </p>
+                        )}
+                    </div>
 
-                    {errors.description && (
-                        <p style={{ color: "red" }}>
-                            {errors.description.message}
+                    <div className="form-group">
+                        <label htmlFor="description">
+                            Course Description
+                        </label>
+
+                        <textarea
+                            id="description"
+                            rows={8}
+                            {...register("description")}
+                        />
+
+                        {errors.description && (
+                            <p className="form-error">
+                                {errors.description.message}
+                            </p>
+                        )}
+                    </div>
+
+                    <button
+                        type="submit"
+                        disabled={saving}
+                    >
+                        {saving
+                            ? "Saving..."
+                            : "Save Changes"}
+                    </button>
+
+                </form>
+
+            </section>
+
+            {/* =========================
+                Course Actions
+            ========================= */}
+
+            <section className="course-editor-section">
+
+                <div className="course-editor-section-header">
+                    <div>
+                        <h2>Course Actions</h2>
+                        <p>
+                            Manage the publication status of
+                            your course.
                         </p>
-                    )}
+                    </div>
                 </div>
 
-                <br />
+                <div className="button-group">
 
-                <button
-                    type="submit"
-                    disabled={saving}
-                >
-                    {saving ? "Saving..." : "Save Changes"}
-                </button>
-            </form>
+                    {course.status !== "PUBLISHED" ? (
+                        <button
+                            type="button"
+                            className="btn-success"
+                            onClick={handlePublish}
+                            disabled={actionLoading}
+                        >
+                            {actionLoading
+                                ? "Processing..."
+                                : "Publish Course"}
+                        </button>
+                    ) : (
+                        <button
+                            type="button"
+                            className="btn-secondary"
+                            onClick={handleUnpublish}
+                            disabled={actionLoading}
+                        >
+                            {actionLoading
+                                ? "Processing..."
+                                : "Unpublish Course"}
+                        </button>
+                    )}
 
-            <hr />
-
-            {/* =========================
-          Course Actions
-      ========================= */}
-
-            <div>
-                <h2>Course Actions</h2>
-
-                {course.status !== "PUBLISHED" ? (
                     <button
                         type="button"
-                        onClick={handlePublish}
+                        className="btn-danger"
+                        onClick={handleDelete}
                         disabled={actionLoading}
                     >
-                        {actionLoading
-                            ? "Processing..."
-                            : "Publish Course"}
+                        Delete Course
                     </button>
-                ) : (
-                    <button
-                        type="button"
-                        onClick={handleUnpublish}
-                        disabled={actionLoading}
-                    >
-                        {actionLoading
-                            ? "Processing..."
-                            : "Unpublish Course"}
-                    </button>
-                )}
 
-                <button
-                    type="button"
-                    onClick={handleDelete}
-                    disabled={actionLoading}
-                    style={{ marginLeft: "10px" }}
-                >
-                    Delete Course
-                </button>
-            </div>
+                </div>
 
-            <hr />
+            </section>
 
             {/* =========================
-          Module Management
-      ========================= */}
+                Module Management
+            ========================= */}
 
-            <div>
-                <h2>Course Modules</h2>
+            <section className="course-editor-section">
+
+                <div className="course-editor-section-header">
+                    <div>
+                        <h2>Course Modules</h2>
+                        <p>
+                            Organize your course into modules
+                            and lessons.
+                        </p>
+                    </div>
+                </div>
 
                 {moduleError && (
-                    <p style={{ color: "red" }}>
+                    <p className="error-message">
                         {moduleError}
                     </p>
                 )}
 
                 {lessonError && (
-                    <p style={{ color: "red" }}>
+                    <p className="error-message">
                         {lessonError}
                     </p>
                 )}
 
-                <div>
+                <div className="module-create-bar">
+
                     <input
                         type="text"
                         placeholder="Enter module title"
@@ -939,19 +993,18 @@ const handleDeleteLessonFile = async (
                             type="button"
                             onClick={handleCreateModule}
                             disabled={moduleLoading}
-                            style={{ marginLeft: "10px" }}
                         >
                             {moduleLoading
                                 ? "Processing..."
                                 : "Add Module"}
                         </button>
                     ) : (
-                        <>
+                        <div className="button-group">
+
                             <button
                                 type="button"
                                 onClick={handleUpdateModule}
                                 disabled={moduleLoading}
-                                style={{ marginLeft: "10px" }}
                             >
                                 {moduleLoading
                                     ? "Processing..."
@@ -960,303 +1013,414 @@ const handleDeleteLessonFile = async (
 
                             <button
                                 type="button"
+                                className="btn-secondary"
                                 onClick={() => {
                                     setEditingModuleId(null);
                                     setModuleTitle("");
                                     setModuleError("");
                                 }}
                                 disabled={moduleLoading}
-                                style={{ marginLeft: "10px" }}
                             >
                                 Cancel
                             </button>
-                        </>
-                    )}
-                </div>
 
-                <br />
+                        </div>
+                    )}
+
+                </div>
 
                 {/* Module List */}
 
                 {moduleLoading && modules.length === 0 ? (
-                    <p>Loading modules...</p>
+                    <div className="loading-state">
+                        Loading modules...
+                    </div>
                 ) : modules.length === 0 ? (
-                    <p>No modules created yet.</p>
+                    <div className="empty-state">
+                        <h3>No Modules Yet</h3>
+                        <p>
+                            Add your first module to start
+                            building this course.
+                        </p>
+                    </div>
                 ) : (
-                    <div>
-
+                    <div className="module-list">
 
                         {modules.map((module) => {
-                            const moduleLessons = lessons[module.id] || [];
+                            const moduleLessons =
+                                lessons[module.id] || [];
 
                             return (
                                 <div
                                     key={module.id}
-                                    style={{
-                                        border: "1px solid #ccc",
-                                        padding: "20px",
-                                        marginBottom: "20px",
-                                    }}
+                                    className="module-card"
                                 >
-                                    {/* =========================
-          Module Header
-      ========================= */}
 
-                                    <h3>
-                                        Module {module.moduleOrder}: {module.title}
-                                    </h3>
+                                    {/* Module Header */}
 
-                                    <button
-                                        type="button"
-                                        onClick={() => handleEditModule(module)}
-                                        disabled={moduleLoading}
-                                    >
-                                        Edit Module
-                                    </button>
+                                    <div className="module-header">
 
-                                    <button
-                                        type="button"
-                                        onClick={() =>
-                                            handleDeleteModule(module.id)
-                                        }
-                                        disabled={moduleLoading}
-                                        style={{ marginLeft: "10px" }}
-                                    >
-                                        Delete Module
-                                    </button>
-
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            setEditingLessonId(null);
-                                            setEditingModuleIdForLesson(null);
-
-                                            setLessonTitle("");
-                                            setLessonContent("");
-                                            setLessonError("");
-
-                                            setLessonFormModuleId(module.id);
-                                        }}
-                                        disabled={lessonLoading}
-                                        style={{ marginLeft: "10px" }}
-                                    >
-                                        + Add Lesson
-                                    </button>
-
-                                    <hr />
-
-                                    {/* =========================
-          Lessons
-      ========================= */}
-
-                                    <h4>Lessons</h4>
-
-                                    {moduleLessons.length === 0 ? (
-                                        <p>No lessons created yet.</p>
-                                    ) : (
                                         <div>
-                                            {moduleLessons.map((lesson) => (
-                                                <div
-                                                    key={lesson.id}
-                                                    style={{
-                                                        border: "1px solid #ddd",
-                                                        padding: "12px",
-                                                        marginBottom: "10px",
-                                                    }}
-                                                >
-                                                    <h5>
-                                                        Lesson {lesson.lessonOrder}:{" "}
-                                                        {lesson.title}
-                                                    </h5>
+                                            <div className="module-title">
+                                                Module {module.moduleOrder}
+                                            </div>
 
-                                                    <p>
-                                                        {lesson.content.length > 150
-                                                            ? `${lesson.content.substring(0, 150)}...`
-                                                            : lesson.content}
-                                                    </p>
-
-                                                    <button
-                                                        type="button"
-                                                        onClick={() =>
-                                                            handleEditLesson(
-                                                                module.id,
-                                                                lesson
-                                                            )
-                                                        }
-                                                        disabled={lessonLoading}
-                                                    >
-                                                        Edit Lesson
-                                                    </button>
-
-                                                    <button
-                                                        type="button"
-                                                        onClick={() =>
-                                                            handleDeleteLesson(
-                                                                module.id,
-                                                                lesson.id
-                                                            )
-                                                        }
-                                                        disabled={lessonLoading}
-                                                        style={{ marginLeft: "10px" }}
-                                                    >
-                                                        Delete Lesson
-                                                    </button>
-
-
-{/* =========================
-    Lesson Files
-========================= */}
-
-<div
-  style={{
-    marginTop: "15px",
-    padding: "12px",
-    background: "#f9f9f9",
-  }}
->
-  <h6>Lesson Files</h6>
-
-  {fileError && (
-    <p style={{ color: "red" }}>
-      {fileError}
-    </p>
-  )}
-
-  {(
-    lessonFiles[lesson.id] || []
-  ).length === 0 ? (
-    <p>No files uploaded.</p>
-  ) : (
-    <div>
-      {(lessonFiles[lesson.id] || []).map(
-        (file) => (
-          <div
-            key={file.id}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "10px",
-              marginBottom: "8px",
-            }}
-          >
-            <span>
-              {file.originalFileName}
-            </span>
-
-            <span>
-              ({(file.fileSize / 1024 / 1024).toFixed(2)} MB)
-            </span>
-
-            <a
-              href={getLessonFileDownloadUrl(file.id)}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Download
-            </a>
-
-            <button
-              type="button"
-              onClick={() =>
-                handleDeleteLessonFile(
-                  lesson.id,
-                  file.id
-                )
-              }
-              disabled={fileLoading}
-            >
-              Delete
-            </button>
-          </div>
-        )
-      )}
-    </div>
-  )}
-
-  <br />
-
-  {fileUploadLessonId === lesson.id ? (
-    <div>
-      <input
-        type="file"
-        accept=".pdf,.mp4,.webm,.ppt,.pptx"
-        disabled={fileLoading}
-        onChange={(event) => {
-          const file = event.target.files?.[0];
-
-          if (file) {
-            handleFileUpload(
-              lesson.id,
-              file
-            );
-          }
-
-          event.target.value = "";
-        }}
-      />
-
-      <button
-        type="button"
-        onClick={() =>
-          setFileUploadLessonId(null)
-        }
-        disabled={fileLoading}
-        style={{ marginLeft: "10px" }}
-      >
-        Cancel
-      </button>
-
-      {fileLoading && (
-        <p>Uploading file...</p>
-      )}
-    </div>
-  ) : (
-    <button
-      type="button"
-      onClick={() => {
-        setFileError("");
-        setFileUploadLessonId(lesson.id);
-      }}
-      disabled={fileLoading}
-    >
-      + Upload File
-    </button>
-  )}
-</div>
-
-
-
-                                                </div>
-                                            ))}
+                                            <h3>
+                                                {module.title}
+                                            </h3>
                                         </div>
-                                    )}
 
-                                    {/* =========================
-          Lesson Form
-      ========================= */}
+                                        <div className="module-actions">
+
+                                            <button
+                                                type="button"
+                                                className="btn-secondary"
+                                                onClick={() =>
+                                                    handleEditModule(module)
+                                                }
+                                                disabled={moduleLoading}
+                                            >
+                                                Edit
+                                            </button>
+
+                                            <button
+                                                type="button"
+                                                className="btn-danger"
+                                                onClick={() =>
+                                                    handleDeleteModule(
+                                                        module.id
+                                                    )
+                                                }
+                                                disabled={moduleLoading}
+                                            >
+                                                Delete
+                                            </button>
+
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setEditingLessonId(null);
+                                                    setEditingModuleIdForLesson(
+                                                        null
+                                                    );
+
+                                                    setLessonTitle("");
+                                                    setLessonContent("");
+                                                    setLessonError("");
+
+                                                    setLessonFormModuleId(
+                                                        module.id
+                                                    );
+                                                }}
+                                                disabled={lessonLoading}
+                                            >
+                                                + Add Lesson
+                                            </button>
+
+                                        </div>
+
+                                    </div>
+
+                                    {/* Lessons */}
+
+                                    <div className="lesson-section">
+
+                                        <h4>Lessons</h4>
+
+                                        {moduleLessons.length === 0 ? (
+                                            <div className="empty-state">
+                                                <p>
+                                                    No lessons created yet.
+                                                </p>
+                                            </div>
+                                        ) : (
+                                            <div className="lesson-list">
+
+                                                {moduleLessons.map(
+                                                    (lesson) => (
+                                                        <div
+                                                            key={lesson.id}
+                                                            className="lesson-card"
+                                                        >
+
+                                                            <div className="lesson-header">
+
+                                                                <div>
+                                                                    <h5 className="lesson-title">
+                                                                        Lesson{" "}
+                                                                        {
+                                                                            lesson.lessonOrder
+                                                                        }
+                                                                        :{" "}
+                                                                        {
+                                                                            lesson.title
+                                                                        }
+                                                                    </h5>
+
+                                                                    <p className="lesson-content-preview">
+                                                                        {
+                                                                            lesson
+                                                                                .content
+                                                                                .length >
+                                                                            150
+                                                                                ? `${lesson.content.substring(
+                                                                                      0,
+                                                                                      150
+                                                                                  )}...`
+                                                                                : lesson.content
+                                                                        }
+                                                                    </p>
+                                                                </div>
+
+                                                                <div className="lesson-actions">
+
+                                                                    <button
+                                                                        type="button"
+                                                                        className="btn-secondary"
+                                                                        onClick={() =>
+                                                                            handleEditLesson(
+                                                                                module.id,
+                                                                                lesson
+                                                                            )
+                                                                        }
+                                                                        disabled={
+                                                                            lessonLoading
+                                                                        }
+                                                                    >
+                                                                        Edit
+                                                                    </button>
+
+                                                                    <button
+                                                                        type="button"
+                                                                        className="btn-danger"
+                                                                        onClick={() =>
+                                                                            handleDeleteLesson(
+                                                                                module.id,
+                                                                                lesson.id
+                                                                            )
+                                                                        }
+                                                                        disabled={
+                                                                            lessonLoading
+                                                                        }
+                                                                    >
+                                                                        Delete
+                                                                    </button>
+
+                                                                </div>
+
+                                                            </div>
+
+                                                            {/* Lesson Files */}
+
+                                                            <div className="file-section">
+
+                                                                <div className="file-section-header">
+                                                                    <h6>
+                                                                        Lesson
+                                                                        Files
+                                                                    </h6>
+                                                                </div>
+
+                                                                {fileError && (
+                                                                    <p className="error-message">
+                                                                        {fileError}
+                                                                    </p>
+                                                                )}
+
+                                                                {(
+                                                                    lessonFiles[
+                                                                        lesson.id
+                                                                    ] || []
+                                                                ).length ===
+                                                                0 ? (
+                                                                    <p className="empty-text">
+                                                                        No files
+                                                                        uploaded.
+                                                                    </p>
+                                                                ) : (
+                                                                    <div className="file-list">
+
+                                                                        {(
+                                                                            lessonFiles[
+                                                                                lesson.id
+                                                                            ] ||
+                                                                            []
+                                                                        ).map(
+                                                                            (
+                                                                                file
+                                                                            ) => (
+                                                                                <div
+                                                                                    key={
+                                                                                        file.id
+                                                                                    }
+                                                                                    className="file-item"
+                                                                                >
+
+                                                                                    <div className="file-info">
+
+                                                                                        <span className="file-name">
+                                                                                            {
+                                                                                                file.originalFileName
+                                                                                            }
+                                                                                        </span>
+
+                                                                                        <span className="file-size">
+                                                                                            (
+                                                                                            {(
+                                                                                                file.fileSize /
+                                                                                                1024 /
+                                                                                                1024
+                                                                                            ).toFixed(
+                                                                                                2
+                                                                                            )}{" "}
+                                                                                            MB
+                                                                                            )
+                                                                                        </span>
+
+                                                                                    </div>
+
+                                                                                    <div className="button-group">
+
+                                                                                        <a
+                                                                                            href={getLessonFileDownloadUrl(
+                                                                                                file.id
+                                                                                            )}
+                                                                                            target="_blank"
+                                                                                            rel="noopener noreferrer"
+                                                                                            className="btn-link"
+                                                                                        >
+                                                                                            Download
+                                                                                        </a>
+
+                                                                                        <button
+                                                                                            type="button"
+                                                                                            className="btn-danger"
+                                                                                            onClick={() =>
+                                                                                                handleDeleteLessonFile(
+                                                                                                    lesson.id,
+                                                                                                    file.id
+                                                                                                )
+                                                                                            }
+                                                                                            disabled={
+                                                                                                fileLoading
+                                                                                            }
+                                                                                        >
+                                                                                            Delete
+                                                                                        </button>
+
+                                                                                    </div>
+
+                                                                                </div>
+                                                                            )
+                                                                        )}
+
+                                                                    </div>
+                                                                )}
+
+                                                                {fileUploadLessonId ===
+                                                                lesson.id ? (
+                                                                    <div className="file-upload-form">
+
+                                                                        <input
+                                                                            type="file"
+                                                                            accept=".pdf,.mp4,.webm,.ppt,.pptx"
+                                                                            disabled={
+                                                                                fileLoading
+                                                                            }
+                                                                            onChange={(
+                                                                                event
+                                                                            ) => {
+                                                                                const file =
+                                                                                    event
+                                                                                        .target
+                                                                                        .files?.[0];
+
+                                                                                if (
+                                                                                    file
+                                                                                ) {
+                                                                                    handleFileUpload(
+                                                                                        lesson.id,
+                                                                                        file
+                                                                                    );
+                                                                                }
+
+                                                                                event.target.value =
+                                                                                    "";
+                                                                            }}
+                                                                        />
+
+                                                                        <button
+                                                                            type="button"
+                                                                            className="btn-secondary"
+                                                                            onClick={() =>
+                                                                                setFileUploadLessonId(
+                                                                                    null
+                                                                                )
+                                                                            }
+                                                                            disabled={
+                                                                                fileLoading
+                                                                            }
+                                                                        >
+                                                                            Cancel
+                                                                        </button>
+
+                                                                        {fileLoading && (
+                                                                            <p className="loading-text">
+                                                                                Uploading
+                                                                                file...
+                                                                            </p>
+                                                                        )}
+
+                                                                    </div>
+                                                                ) : (
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => {
+                                                                            setFileError(
+                                                                                ""
+                                                                            );
+                                                                            setFileUploadLessonId(
+                                                                                lesson.id
+                                                                            );
+                                                                        }}
+                                                                        disabled={
+                                                                            fileLoading
+                                                                        }
+                                                                    >
+                                                                        + Upload
+                                                                        File
+                                                                    </button>
+                                                                )}
+
+                                                            </div>
+
+                                                        </div>
+                                                    )
+                                                )}
+
+                                            </div>
+                                        )}
+
+                                    </div>
+
+                                    {/* Lesson Form */}
 
                                     {lessonFormModuleId === module.id && (
-                                        <div
-                                            style={{
-                                                marginTop: "15px",
-                                                padding: "15px",
-                                                background: "#f5f5f5",
-                                            }}
-                                        >
+                                        <div className="lesson-form">
+
                                             <h4>
                                                 {editingLessonId !== null
                                                     ? "Edit Lesson"
                                                     : "Add Lesson"}
                                             </h4>
 
-                                            <div>
+                                            <div className="form-group">
+
                                                 <label
                                                     htmlFor={`lesson-title-${module.id}`}
                                                 >
                                                     Lesson Title
                                                 </label>
-
-                                                <br />
 
                                                 <input
                                                     id={`lesson-title-${module.id}`}
@@ -1264,21 +1428,21 @@ const handleDeleteLessonFile = async (
                                                     placeholder="Enter lesson title"
                                                     value={lessonTitle}
                                                     onChange={(event) =>
-                                                        setLessonTitle(event.target.value)
+                                                        setLessonTitle(
+                                                            event.target.value
+                                                        )
                                                     }
                                                 />
+
                                             </div>
 
-                                            <br />
+                                            <div className="form-group">
 
-                                            <div>
                                                 <label
                                                     htmlFor={`lesson-content-${module.id}`}
                                                 >
                                                     Lesson Content
                                                 </label>
-
-                                                <br />
 
                                                 <textarea
                                                     id={`lesson-content-${module.id}`}
@@ -1286,19 +1450,25 @@ const handleDeleteLessonFile = async (
                                                     placeholder="Enter lesson content"
                                                     value={lessonContent}
                                                     onChange={(event) =>
-                                                        setLessonContent(event.target.value)
+                                                        setLessonContent(
+                                                            event.target.value
+                                                        )
                                                     }
                                                 />
+
                                             </div>
 
-                                            <br />
-
                                             {editingLessonId !== null ? (
-                                                <>
+                                                <div className="button-group">
+
                                                     <button
                                                         type="button"
-                                                        onClick={handleUpdateLesson}
-                                                        disabled={lessonLoading}
+                                                        onClick={
+                                                            handleUpdateLesson
+                                                        }
+                                                        disabled={
+                                                            lessonLoading
+                                                        }
                                                     >
                                                         {lessonLoading
                                                             ? "Updating..."
@@ -1307,30 +1477,42 @@ const handleDeleteLessonFile = async (
 
                                                     <button
                                                         type="button"
+                                                        className="btn-secondary"
                                                         onClick={() => {
-                                                            setEditingLessonId(null);
-                                                            setEditingModuleIdForLesson(null);
-
-                                                            setLessonFormModuleId(null);
-
+                                                            setEditingLessonId(
+                                                                null
+                                                            );
+                                                            setEditingModuleIdForLesson(
+                                                                null
+                                                            );
+                                                            setLessonFormModuleId(
+                                                                null
+                                                            );
                                                             setLessonTitle("");
                                                             setLessonContent("");
                                                             setLessonError("");
                                                         }}
-                                                        disabled={lessonLoading}
-                                                        style={{ marginLeft: "10px" }}
+                                                        disabled={
+                                                            lessonLoading
+                                                        }
                                                     >
                                                         Cancel
                                                     </button>
-                                                </>
+
+                                                </div>
                                             ) : (
-                                                <>
+                                                <div className="button-group">
+
                                                     <button
                                                         type="button"
                                                         onClick={() =>
-                                                            handleCreateLesson(module.id)
+                                                            handleCreateLesson(
+                                                                module.id
+                                                            )
                                                         }
-                                                        disabled={lessonLoading}
+                                                        disabled={
+                                                            lessonLoading
+                                                        }
                                                     >
                                                         {lessonLoading
                                                             ? "Creating..."
@@ -1339,34 +1521,41 @@ const handleDeleteLessonFile = async (
 
                                                     <button
                                                         type="button"
+                                                        className="btn-secondary"
                                                         onClick={() => {
-                                                            setLessonFormModuleId(null);
-
+                                                            setLessonFormModuleId(
+                                                                null
+                                                            );
                                                             setLessonTitle("");
                                                             setLessonContent("");
                                                             setLessonError("");
                                                         }}
-                                                        disabled={lessonLoading}
-                                                        style={{ marginLeft: "10px" }}
+                                                        disabled={
+                                                            lessonLoading
+                                                        }
                                                     >
                                                         Cancel
                                                     </button>
-                                                </>
+
+                                                </div>
                                             )}
+
                                         </div>
                                     )}
+
                                 </div>
                             );
                         })}
 
-
-
-
                     </div>
                 )}
-            </div>
+
+            </section>
+
         </div>
     );
 };
 
 export default CourseEditor;
+
+

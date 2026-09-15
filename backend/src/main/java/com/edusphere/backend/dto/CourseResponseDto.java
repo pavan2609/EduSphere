@@ -8,8 +8,17 @@ public class CourseResponseDto {
     private String status;
     private Long instructorId;
     private String instructorName;
+    private Integer maxSeats;
+    
+    public Integer getMaxSeats() {
+		return maxSeats;
+	}
 
-    public CourseResponseDto() {
+	public void setMaxSeats(Integer maxSeats) {
+		this.maxSeats = maxSeats;
+	}
+
+	public CourseResponseDto() {
     }
 
     public CourseResponseDto(
@@ -18,7 +27,8 @@ public class CourseResponseDto {
             String description,
             String status,
             Long instructorId,
-            String instructorName) {
+            String instructorName, 
+            Integer maxSeats) {
 
         this.id = id;
         this.title = title;
@@ -26,6 +36,7 @@ public class CourseResponseDto {
         this.status = status;
         this.instructorId = instructorId;
         this.instructorName = instructorName;
+        this.maxSeats = maxSeats;
     }
 
     public Long getId() {

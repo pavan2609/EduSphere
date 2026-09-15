@@ -76,102 +76,151 @@ function Register() {
   };
 
   return (
-    <div>
-      <h1>EduSphere</h1>
+    <div className="auth-page">
+      <div className="auth-card">
 
-      <h2>Create Account</h2>
-
-      <form onSubmit={handleSubmit(onSubmit)}>
-
-        <div>
-          <label>Name</label>
-
-          <input
-            type="text"
-            placeholder="Enter your name"
-            {...register("name")}
-          />
-
-          {errors.name && (
-            <p>{errors.name.message}</p>
-          )}
+        <div className="auth-logo">
+          EduSphere
         </div>
 
-        <div>
-          <label>Email</label>
+        <h2>Create Account</h2>
 
-          <input
-            type="email"
-            placeholder="Enter your email"
-            {...register("email")}
-          />
+        <p>
+          Create your account to get started
+        </p>
 
-          {errors.email && (
-            <p>{errors.email.message}</p>
-          )}
-        </div>
-
-        <div>
-          <label>Password</label>
-
-          <input
-            type="password"
-            placeholder="Enter your password"
-            {...register("password")}
-          />
-
-          {errors.password && (
-            <p>{errors.password.message}</p>
-          )}
-        </div>
-
-        <div>
-          <label>Confirm Password</label>
-
-          <input
-            type="password"
-            placeholder="Confirm your password"
-            {...register("confirmPassword")}
-          />
-
-          {errors.confirmPassword && (
-            <p>{errors.confirmPassword.message}</p>
-          )}
-        </div>
-
-        <div>
-          <label>Role</label>
-
-          <select {...register("role")}>
-            <option value="STUDENT">Student</option>
-            <option value="INSTRUCTOR">Instructor</option>
-          </select>
-
-          {errors.role && (
-            <p>{errors.role.message}</p>
-          )}
-        </div>
-
-        {errors.root && (
-          <p>{errors.root.message}</p>
-        )}
-
-        <button
-          type="submit"
-          disabled={isSubmitting}
+        <form
+          className="auth-form"
+          onSubmit={handleSubmit(onSubmit)}
         >
-          {isSubmitting
-            ? "Creating Account..."
-            : "Register"}
-        </button>
-      </form>
 
-      <p>
-        Already have an account?{" "}
-        <Link to="/login">
-          Login
-        </Link>
-      </p>
+          <div className="form-group">
+            <label htmlFor="name">
+              Name
+            </label>
+
+            <input
+              id="name"
+              type="text"
+              placeholder="Enter your name"
+              {...register("name")}
+            />
+
+            {errors.name && (
+              <p className="form-error">
+                {errors.name.message}
+              </p>
+            )}
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="email">
+              Email
+            </label>
+
+            <input
+              id="email"
+              type="email"
+              placeholder="Enter your email"
+              {...register("email")}
+            />
+
+            {errors.email && (
+              <p className="form-error">
+                {errors.email.message}
+              </p>
+            )}
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="password">
+              Password
+            </label>
+
+            <input
+              id="password"
+              type="password"
+              placeholder="Enter your password"
+              {...register("password")}
+            />
+
+            {errors.password && (
+              <p className="form-error">
+                {errors.password.message}
+              </p>
+            )}
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="confirmPassword">
+              Confirm Password
+            </label>
+
+            <input
+              id="confirmPassword"
+              type="password"
+              placeholder="Confirm your password"
+              {...register("confirmPassword")}
+            />
+
+            {errors.confirmPassword && (
+              <p className="form-error">
+                {errors.confirmPassword.message}
+              </p>
+            )}
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="role">
+              Role
+            </label>
+
+            <select
+              id="role"
+              {...register("role")}
+            >
+              <option value="STUDENT">
+                Student
+              </option>
+
+              <option value="INSTRUCTOR">
+                Instructor
+              </option>
+            </select>
+
+            {errors.role && (
+              <p className="form-error">
+                {errors.role.message}
+              </p>
+            )}
+          </div>
+
+          {errors.root && (
+            <p className="error-message">
+              {errors.root.message}
+            </p>
+          )}
+
+          <button
+            type="submit"
+            disabled={isSubmitting}
+          >
+            {isSubmitting
+              ? "Creating Account..."
+              : "Register"}
+          </button>
+        </form>
+
+        <div className="auth-footer">
+          <p>
+            Already have an account?{" "}
+            <Link to="/login">
+              Login
+            </Link>
+          </p>
+        </div>
+
+      </div>
     </div>
   );
 }

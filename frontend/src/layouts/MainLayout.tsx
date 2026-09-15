@@ -1,7 +1,8 @@
-import { Outlet, Link } from "react-router-dom";
+import { Outlet } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import Sidebar from "../components/Sidebar";
 import Header from "../components/Header";
+
 const MainLayout = () => {
   const { user } = useAuth();
 
@@ -10,18 +11,18 @@ const MainLayout = () => {
   }
 
   return (
-    <div>
+    <>
       <Sidebar />
+      <Header />
 
-      <div>
-        <Header />
-
-        <main>
+      <main className="main-content">
+        <div className="main-content-inner">
           <Outlet />
-        </main>
-      </div>
-    </div>
+        </div>
+      </main>
+    </>
   );
 };
 
 export default MainLayout;
+

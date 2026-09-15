@@ -23,7 +23,18 @@ public class Course {
     @JoinColumn(name = "instructor_id", nullable = false)
     private User instructor;
 
-    public Course() {
+    @Column(name = "max_seats", nullable = false)
+    private Integer maxSeats;
+    
+    public Integer getMaxSeats() {
+		return maxSeats;
+	}
+
+	public void setMaxSeats(Integer maxSeats) {
+		this.maxSeats = maxSeats;
+	}
+
+	public Course() {
     }
 
     public Course(

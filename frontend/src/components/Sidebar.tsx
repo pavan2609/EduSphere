@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 const Sidebar = () => {
@@ -9,31 +9,88 @@ const Sidebar = () => {
   }
 
   return (
-    <aside>
-      <h2>EduSphere</h2>
+    <aside className="sidebar">
+      <div className="sidebar-logo">
+        EduSphere
+      </div>
 
-      <nav>
+      <nav className="sidebar-nav">
+
         {user.role === "ADMIN" && (
           <>
-            <Link to="/admin/dashboard">Dashboard</Link>
-            <Link to="/admin/users">Users</Link>
+            <NavLink
+              to="/admin/dashboard"
+              className={({ isActive }) =>
+                `sidebar-link${isActive ? " active" : ""}`
+              }
+            >
+              Dashboard
+            </NavLink>
+
+            <NavLink
+              to="/admin/users"
+              className={({ isActive }) =>
+                `sidebar-link${isActive ? " active" : ""}`
+              }
+            >
+              Users
+            </NavLink>
           </>
         )}
 
         {user.role === "INSTRUCTOR" && (
           <>
-            <Link to="/instructor/dashboard">Dashboard</Link>
-            <Link to="/instructor/courses">My Courses</Link>
+            <NavLink
+              to="/instructor/dashboard"
+              className={({ isActive }) =>
+                `sidebar-link${isActive ? " active" : ""}`
+              }
+            >
+              Dashboard
+            </NavLink>
+
+            <NavLink
+              to="/instructor/courses"
+              className={({ isActive }) =>
+                `sidebar-link${isActive ? " active" : ""}`
+              }
+            >
+              My Courses
+            </NavLink>
           </>
         )}
 
         {user.role === "STUDENT" && (
           <>
-            <Link to="/student/dashboard">Dashboard</Link>
-            <Link to="/student/courses">Courses</Link>
-            <Link to="/student/my-courses">My Learning</Link>
+            <NavLink
+              to="/student/dashboard"
+              className={({ isActive }) =>
+                `sidebar-link${isActive ? " active" : ""}`
+              }
+            >
+              Dashboard
+            </NavLink>
+
+            <NavLink
+              to="/student/courses"
+              className={({ isActive }) =>
+                `sidebar-link${isActive ? " active" : ""}`
+              }
+            >
+              Courses
+            </NavLink>
+
+            <NavLink
+              to="/student/my-courses"
+              className={({ isActive }) =>
+                `sidebar-link${isActive ? " active" : ""}`
+              }
+            >
+              My Learning
+            </NavLink>
           </>
         )}
+
       </nav>
     </aside>
   );
