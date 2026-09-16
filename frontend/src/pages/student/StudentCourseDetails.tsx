@@ -1,12 +1,19 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+
 import {
+    completeLesson,
+    getCourseProgress,
+    getMyProgress,
     getStudentCourseDetails,
 } from "../../services/studentCourseDetailsService";
+
 import type {
+    CourseProgress,
     StudentCourseDetails as StudentCourseDetailsType,
     StudentLesson,
 } from "../../services/studentCourseDetailsService";
+
 import {
     enrollInCourse,
     getMyEnrollments,
@@ -32,12 +39,22 @@ const StudentCourseDetails = () => {
 
     const [enrolling, setEnrolling] = useState(false);
     const [enrollmentError, setEnrollmentError] = useState("");
-const loadEnrollmentStatus = async (courseId: number) => {
+
+    const [courseProgress, setCourseProgress] =
+        useState<CourseProgress | null>(null);
+
+    const [completedLessonIds, setCompletedLessonIds] =
+        useState<number[]>([]);
+
+    const [completingLesson, setCompletingLesson] =
+        useState(false);
+
+    const loadEnrollmentStatus = async (id: number) => {
         try {
             const enrollments = await getMyEnrollments();
 
             const enrollment = enrollments.find(
-                (item) => item.courseId === courseId
+                (item) => item.courseId === id
             );
 
             if (enrollment) {
@@ -46,11 +63,37 @@ const loadEnrollmentStatus = async (courseId: number) => {
                 setEnrollmentStatus(null);
             }
         } catch (error) {
-            console.error(error);
+            console.error("Failed to load enrollment status", error);
         }
     };
+
+    const loadCourseProgress = async (id: number) => {
+        try {
+            const progress = await getCourseProgress(id);
+            setCourseProgress(progress);
+
+            const progressList = await getMyProgress();
+
+            setCompletedLessonIds(
+                progressList
+                    .filter((item) => item.status === "COMPLETED")
+                    .map((item) => item.lessonId)
+            );
+        } catch (error) {
+            console.error("Failed to load course progress", error);
+        }
+    };
+
     const loadCourse = async () => {
         if (!courseId) {
+            setError("Invalid course.");
+            setLoading(false);
+            return;
+        }
+
+        const numericCourseId = Number(courseId);
+
+        if (Number.isNaN(numericCourseId)) {
             setError("Invalid course.");
             setLoading(false);
             return;
@@ -60,12 +103,12 @@ const loadEnrollmentStatus = async (courseId: number) => {
             setLoading(true);
             setError("");
 
-            const data = await getStudentCourseDetails(
-                Number(courseId)
-            );
+            const data = await getStudentCourseDetails(numericCourseId);
 
             setCourse(data);
+
             await loadEnrollmentStatus(data.id);
+            await loadCourseProgress(data.id);
 
             if (data.modules.length > 0) {
                 setExpandedModules([data.modules[0].id]);
@@ -76,6 +119,7 @@ const loadEnrollmentStatus = async (courseId: number) => {
             }
         } catch (error) {
             console.error(error);
+
             setError(
                 "Failed to load course details. Please try again."
             );
@@ -108,6 +152,59 @@ const loadEnrollmentStatus = async (courseId: number) => {
         return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
     };
 
+    const handleEnrollment = async () => {
+        if (!course) {
+            return;
+        }
+
+        try {
+            setEnrolling(true);
+            setEnrollmentError("");
+
+            const enrollment = await enrollInCourse(course.id);
+
+            setEnrollmentStatus(enrollment.status);
+        } catch (error: any) {
+            console.error(error);
+
+            setEnrollmentError(
+                error.response?.data?.message ||
+                "Unable to enroll in this course."
+            );
+        } finally {
+            setEnrolling(false);
+        }
+    };
+
+    const handleCompleteLesson = async () => {
+        if (!selectedLesson || !course) {
+            return;
+        }
+
+        try {
+            setCompletingLesson(true);
+
+            await completeLesson(selectedLesson.id);
+
+            setCompletedLessonIds((previous) =>
+                previous.includes(selectedLesson.id)
+                    ? previous
+                    : [...previous, selectedLesson.id]
+            );
+
+            await loadCourseProgress(course.id);
+        } catch (error: any) {
+            console.error("Failed to complete lesson", error);
+
+            alert(
+                error.response?.data?.message ||
+                "Unable to complete this lesson."
+            );
+        } finally {
+            setCompletingLesson(false);
+        }
+    };
+
     if (loading) {
         return (
             <div className="page-container">
@@ -134,38 +231,15 @@ const loadEnrollmentStatus = async (courseId: number) => {
             </div>
         );
     }
-    
-
-    const handleEnrollment = async () => {
-        if (!course) {
-            return;
-        }
-
-        try {
-            setEnrolling(true);
-            setEnrollmentError("");
-
-            const enrollment = await enrollInCourse(course.id);
-
-            setEnrollmentStatus(enrollment.status);
-        } catch (error: any) {
-            console.error(error);
-
-            setEnrollmentError(
-                error.response?.data?.message ||
-                "Unable to enroll in this course."
-            );
-        } finally {
-            setEnrolling(false);
-        }
-    };
 
     return (
         <div className="page-container student-course-details">
 
             {/* Course Header */}
             <div className="course-details-header">
+
                 <div className="course-enrollment">
+
                     {enrollmentStatus === null && (
                         <button
                             type="button"
@@ -173,7 +247,9 @@ const loadEnrollmentStatus = async (courseId: number) => {
                             onClick={handleEnrollment}
                             disabled={enrolling}
                         >
-                            {enrolling ? "Processing..." : "Enroll Now"}
+                            {enrolling
+                                ? "Processing..."
+                                : "Enroll Now"}
                         </button>
                     )}
 
@@ -200,7 +276,9 @@ const loadEnrollmentStatus = async (courseId: number) => {
                             {enrollmentError}
                         </p>
                     )}
+
                 </div>
+
                 <div>
                     <Link
                         to="/student/courses"
@@ -225,15 +303,53 @@ const loadEnrollmentStatus = async (courseId: number) => {
                         <span>Instructor</span>
                         <strong>{course.instructorName}</strong>
                     </div>
+
                 </div>
             </div>
+
+            {/* Course Progress */}
+            {courseProgress && (
+                <div className="course-progress-card">
+
+                    <div className="course-progress-header">
+                        <span>Course Progress</span>
+
+                        <strong>
+                            {Math.round(
+                                courseProgress.progressPercentage
+                            )}
+                            %
+                        </strong>
+                    </div>
+
+                    <div className="course-progress-bar">
+                        <div
+                            className="course-progress-fill"
+                            style={{
+                                width: `${Math.min(
+                                    courseProgress.progressPercentage,
+                                    100
+                                )}%`,
+                            }}
+                        />
+                    </div>
+
+                    <p>
+                        {courseProgress.completedLessons} of{" "}
+                        {courseProgress.totalLessons} lessons completed
+                    </p>
+
+                </div>
+            )}
 
             {/* Course Content */}
             <div className="student-course-layout">
 
                 {/* Left: Course Structure */}
                 <aside className="course-outline card">
+
                     <div className="course-outline-header">
+
                         <h2>Course Content</h2>
 
                         <span>
@@ -242,15 +358,20 @@ const loadEnrollmentStatus = async (courseId: number) => {
                                 ? "module"
                                 : "modules"}
                         </span>
+
                     </div>
 
                     {course.modules.length === 0 ? (
                         <div className="empty-state">
-                            <p>No learning content available yet.</p>
+                            <p>
+                                No learning content available yet.
+                            </p>
                         </div>
                     ) : (
                         <div className="module-list">
+
                             {course.modules.map((module) => {
+
                                 const isExpanded =
                                     expandedModules.includes(module.id);
 
@@ -259,6 +380,7 @@ const loadEnrollmentStatus = async (courseId: number) => {
                                         key={module.id}
                                         className="student-module"
                                     >
+
                                         <button
                                             type="button"
                                             className="student-module-header"
@@ -267,127 +389,216 @@ const loadEnrollmentStatus = async (courseId: number) => {
                                             }
                                         >
                                             <div>
+
                                                 <span className="module-number">
-                                                    Module {module.moduleOrder}
+                                                    Module{" "}
+                                                    {module.moduleOrder}
                                                 </span>
 
-                                                <strong>{module.title}</strong>
+                                                <strong>
+                                                    {module.title}
+                                                </strong>
+
                                             </div>
 
                                             <span className="module-toggle">
                                                 {isExpanded ? "−" : "+"}
                                             </span>
+
                                         </button>
 
                                         {isExpanded && (
                                             <div className="student-lesson-list">
+
                                                 {module.lessons.length === 0 ? (
                                                     <div className="student-no-lessons">
                                                         No lessons available.
                                                     </div>
                                                 ) : (
-                                                    module.lessons.map((lesson) => (
-                                                        <button
-                                                            type="button"
-                                                            key={lesson.id}
-                                                            className={`student-lesson-item ${selectedLesson?.id === lesson.id
-                                                                    ? "selected"
-                                                                    : ""
+                                                    module.lessons.map(
+                                                        (lesson) => (
+                                                            <button
+                                                                type="button"
+                                                                key={lesson.id}
+                                                                className={`student-lesson-item ${
+                                                                    selectedLesson?.id ===
+                                                                    lesson.id
+                                                                        ? "selected"
+                                                                        : ""
                                                                 }`}
-                                                            onClick={() =>
-                                                                setSelectedLesson(lesson)
-                                                            }
-                                                        >
-                                                            <span className="lesson-number">
-                                                                {lesson.lessonOrder}
-                                                            </span>
+                                                                onClick={() =>
+                                                                    setSelectedLesson(
+                                                                        lesson
+                                                                    )
+                                                                }
+                                                            >
 
-                                                            <span className="lesson-title">
-                                                                {lesson.title}
-                                                            </span>
-                                                        </button>
-                                                    ))
+                                                                <span className="lesson-number">
+                                                                    {lesson.lessonOrder}
+                                                                </span>
+
+                                                                <span className="lesson-title">
+                                                                    {lesson.title}
+                                                                </span>
+
+                                                                {completedLessonIds.includes(
+                                                                    lesson.id
+                                                                ) && (
+                                                                    <span className="lesson-completed-icon">
+                                                                        ✓
+                                                                    </span>
+                                                                )}
+
+                                                            </button>
+                                                        )
+                                                    )
                                                 )}
+
                                             </div>
                                         )}
+
                                     </div>
                                 );
                             })}
+
                         </div>
                     )}
+
                 </aside>
 
                 {/* Right: Lesson Content */}
                 <section className="lesson-content card">
+
                     {!selectedLesson ? (
                         <div className="lesson-empty">
+
                             <h2>Start Learning</h2>
+
                             <p>
                                 Select a lesson from the course content
                                 to begin.
                             </p>
+
                         </div>
                     ) : (
                         <>
+
                             <div className="lesson-content-header">
+
                                 <div>
+
                                     <span className="lesson-label">
-                                        Lesson {selectedLesson.lessonOrder}
+                                        Lesson{" "}
+                                        {selectedLesson.lessonOrder}
                                     </span>
 
-                                    <h2>{selectedLesson.title}</h2>
+                                    <h2>
+                                        {selectedLesson.title}
+                                    </h2>
+
                                 </div>
+
                             </div>
 
                             <div className="lesson-body">
+
                                 {selectedLesson.content ? (
-                                    <p>{selectedLesson.content}</p>
+                                    <p>
+                                        {selectedLesson.content}
+                                    </p>
                                 ) : (
                                     <p className="text-muted">
                                         No lesson description available.
                                     </p>
                                 )}
+
                             </div>
 
                             {/* Lesson Files */}
                             {selectedLesson.files.length > 0 && (
                                 <div className="student-files">
+
                                     <h3>Learning Materials</h3>
 
                                     <div className="student-file-list">
-                                        {selectedLesson.files.map((file) => (
-                                            <div
-                                                key={file.id}
-                                                className="student-file-item"
-                                            >
-                                                <div className="student-file-info">
-                                                    <strong>
-                                                        {file.originalFileName}
-                                                    </strong>
 
-                                                    <span>
-                                                        {file.fileType} •{" "}
-                                                        {formatFileSize(file.fileSize)}
-                                                    </span>
-                                                </div>
-
-                                                <a
-                                                    href={`http://localhost:8080/api/instructor/lessons/files/${file.id}/download`}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="btn-secondary"
+                                        {selectedLesson.files.map(
+                                            (file) => (
+                                                <div
+                                                    key={file.id}
+                                                    className="student-file-item"
                                                 >
-                                                    Open
-                                                </a>
-                                            </div>
-                                        ))}
+
+                                                    <div className="student-file-info">
+
+                                                        <strong>
+                                                            {
+                                                                file.originalFileName
+                                                            }
+                                                        </strong>
+
+                                                        <span>
+                                                            {file.fileType} •{" "}
+                                                            {formatFileSize(
+                                                                file.fileSize
+                                                            )}
+                                                        </span>
+
+                                                    </div>
+
+                                                    <a
+                                                        href={`http://localhost:8080/api/instructor/lessons/files/${file.id}/download`}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="btn-secondary"
+                                                    >
+                                                        Open
+                                                    </a>
+
+                                                </div>
+                                            )
+                                        )}
+
                                     </div>
+
                                 </div>
                             )}
+
+                            {/* Lesson Completion */}
+                            <div className="lesson-completion-section">
+
+                                {completedLessonIds.includes(
+                                    selectedLesson.id
+                                ) ? (
+                                    <button
+                                        type="button"
+                                        className="completed-lesson-button"
+                                        disabled
+                                    >
+                                        ✓ Lesson Completed
+                                    </button>
+                                ) : (
+                                    <button
+                                        type="button"
+                                        className="complete-lesson-button"
+                                        onClick={handleCompleteLesson}
+                                        disabled={completingLesson}
+                                    >
+                                        {completingLesson
+                                            ? "Completing..."
+                                            : "Mark Lesson as Complete"}
+                                    </button>
+                                )}
+
+                            </div>
+
                         </>
                     )}
+
                 </section>
+
             </div>
+
         </div>
     );
 };

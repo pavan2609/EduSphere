@@ -34,4 +34,9 @@ public interface EnrollmentRepository
             Course course,
             EnrollmentStatus status
     );
+    boolean existsByStudentAndCourseAndStatus(
+            User student,
+            Course course,
+            EnrollmentStatus status
+    );
 }

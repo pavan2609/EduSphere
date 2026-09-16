@@ -17,15 +17,9 @@ import InstructorCourses from "../pages/instructor/InstructorCourses";
 import CourseEditor from "../pages/instructor/CourseEditor";
 import StudentCourses from "../pages/student/StudentCourses";
 import StudentCourseDetails from "../pages/student/StudentCourseDetails";
+import StudentMyCourses from "../pages/student/StudentMyCourses";
 const AdminUsers = () => {
     return <h1>User Management</h1>;
-};
-
-
-
-
-const StudentMyCourses = () => {
-    return <h1>My Learning</h1>;
 };
 
 const AppRoutes = () => {
@@ -100,14 +94,7 @@ const AppRoutes = () => {
                             path="/student/courses/:courseId"
                             element={<StudentCourseDetails />}
                         />
-                        <Route
-                            path="/student/my-courses"
-                            element={
-                                <div>
-                                    My Learning
-                                </div>
-                            }
-                        />
+                        <Route path="/student/my-courses" element={<StudentMyCourses />} />
 
                     </Route>
                 </Route>
