@@ -1,5 +1,6 @@
 package com.edusphere.backend.service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.security.access.AccessDeniedException;
@@ -8,6 +9,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.edusphere.backend.dto.QuizRequestDto;
 import com.edusphere.backend.dto.QuizResponseDto;
+import com.edusphere.backend.dto.StudentQuizOptionResponseDto;
+import com.edusphere.backend.dto.StudentQuizQuestionResponseDto;
+import com.edusphere.backend.dto.StudentQuizResponseDto;
 import com.edusphere.backend.entity.Course;
 import com.edusphere.backend.entity.Option;
 import com.edusphere.backend.entity.Question;
@@ -250,5 +254,83 @@ public class QuizService {
                 quiz.getPassPercentage(),
                 quiz.getStatus()
         );
+    }
+    @Transactional(readOnly = true)
+    public List<StudentQuizResponseDto> getPublishedQuizzesForStudent(
+            Long courseId
+    ) {
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() ->
+                        new IllegalArgumentException(
+                                "Course not found"
+                        )
+                );
+
+        if (!"PUBLISHED".equalsIgnoreCase(course.getStatus())) {
+            throw new IllegalArgumentException(
+                    "Course is not published"
+            );
+        }
+
+        List<Quiz> quizzes =
+                quizRepository.findByCourseAndStatus(
+                        course,
+                        "PUBLISHED"
+                );
+
+        List<StudentQuizResponseDto> response =
+                new ArrayList<>();
+
+        for (Quiz quiz : quizzes) {
+
+            List<Question> questions =
+                    questionRepository
+                            .findByQuizOrderByQuestionOrderAsc(quiz);
+
+            List<StudentQuizQuestionResponseDto> questionDtos =
+                    new ArrayList<>();
+
+            for (Question question : questions) {
+
+                List<Option> options =
+                        optionRepository.findByQuestion(question);
+
+                List<StudentQuizOptionResponseDto> optionDtos =
+                        new ArrayList<>();
+
+                for (Option option : options) {
+
+                    optionDtos.add(
+                            new StudentQuizOptionResponseDto(
+                                    option.getId(),
+                                    option.getOptionText()
+                            )
+                    );
+                }
+
+                questionDtos.add(
+                        new StudentQuizQuestionResponseDto(
+                                question.getId(),
+                                question.getQuestionText(),
+                                question.getQuestionOrder(),
+                                optionDtos
+                        )
+                );
+            }
+
+            response.add(
+                    new StudentQuizResponseDto(
+                            quiz.getId(),
+                            course.getId(),
+                            quiz.getTitle(),
+                            quiz.getDescription(),
+                            quiz.getDurationMinutes(),
+                            quiz.getPassPercentage(),
+                            questionDtos
+                    )
+            );
+        }
+
+        return response;
     }
 }

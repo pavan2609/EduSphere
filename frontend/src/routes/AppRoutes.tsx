@@ -18,6 +18,7 @@ import CourseEditor from "../pages/instructor/CourseEditor";
 import StudentCourses from "../pages/student/StudentCourses";
 import StudentCourseDetails from "../pages/student/StudentCourseDetails";
 import StudentMyCourses from "../pages/student/StudentMyCourses";
+import StudentQuiz from "../pages/student/StudentQuiz";
 const AdminUsers = () => {
     return <h1>User Management</h1>;
 };
@@ -79,25 +80,35 @@ const AppRoutes = () => {
 
 
                 <Route element={<ProtectedRoute allowedRoles={["STUDENT"]} />}>
-                    <Route element={<MainLayout />}>
+    <Route element={<MainLayout />}>
 
-                        <Route
-                            path="/student/dashboard"
-                            element={<StudentDashboard />}
-                        />
+        <Route
+            path="/student/dashboard"
+            element={<StudentDashboard />}
+        />
 
-                        <Route
-                            path="/student/courses"
-                            element={<StudentCourses />}
-                        />
-                        <Route
-                            path="/student/courses/:courseId"
-                            element={<StudentCourseDetails />}
-                        />
-                        <Route path="/student/my-courses" element={<StudentMyCourses />} />
+        <Route
+            path="/student/courses"
+            element={<StudentCourses />}
+        />
 
-                    </Route>
-                </Route>
+        <Route
+            path="/student/courses/:courseId"
+            element={<StudentCourseDetails />}
+        />
+
+        <Route
+            path="/student/my-courses"
+            element={<StudentMyCourses />}
+        />
+
+        <Route
+            path="/student/quizzes/:quizId"
+            element={<StudentQuiz />}
+        />
+
+    </Route>
+</Route>
 
 
                 {/* Default */}

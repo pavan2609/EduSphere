@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 
 import {
     completeLesson,
@@ -19,8 +19,17 @@ import {
     getMyEnrollments,
 } from "../../services/enrollmentService";
 
+import {
+    getPublishedQuizzes,
+} from "../../services/studentQuizService";
+
+import type {
+    StudentQuizSummary,
+} from "../../services/studentQuizService";
+
 const StudentCourseDetails = () => {
     const { courseId } = useParams<{ courseId: string }>();
+    const navigate = useNavigate();
 
     const [course, setCourse] =
         useState<StudentCourseDetailsType | null>(null);
@@ -48,6 +57,16 @@ const StudentCourseDetails = () => {
 
     const [completingLesson, setCompletingLesson] =
         useState(false);
+
+    // Quiz state
+    const [quizzes, setQuizzes] =
+        useState<StudentQuizSummary[]>([]);
+
+    const [quizLoading, setQuizLoading] =
+        useState(false);
+
+    const [quizError, setQuizError] =
+        useState("");
 
     const loadEnrollmentStatus = async (id: number) => {
         try {
@@ -84,6 +103,22 @@ const StudentCourseDetails = () => {
         }
     };
 
+    const loadQuizzes = async (id: number) => {
+        try {
+            setQuizLoading(true);
+            setQuizError("");
+
+            const data = await getPublishedQuizzes(id);
+
+            setQuizzes(data);
+        } catch (error) {
+            console.error("Failed to load quizzes", error);
+            setQuizError("Failed to load quizzes. Please try again.");
+        } finally {
+            setQuizLoading(false);
+        }
+    };
+
     const loadCourse = async () => {
         if (!courseId) {
             setError("Invalid course.");
@@ -103,18 +138,22 @@ const StudentCourseDetails = () => {
             setLoading(true);
             setError("");
 
-            const data = await getStudentCourseDetails(numericCourseId);
+            const data =
+                await getStudentCourseDetails(numericCourseId);
 
             setCourse(data);
 
             await loadEnrollmentStatus(data.id);
             await loadCourseProgress(data.id);
+            await loadQuizzes(data.id);
 
             if (data.modules.length > 0) {
                 setExpandedModules([data.modules[0].id]);
 
                 if (data.modules[0].lessons.length > 0) {
-                    setSelectedLesson(data.modules[0].lessons[0]);
+                    setSelectedLesson(
+                        data.modules[0].lessons[0]
+                    );
                 }
             }
         } catch (error) {
@@ -194,7 +233,10 @@ const StudentCourseDetails = () => {
 
             await loadCourseProgress(course.id);
         } catch (error: any) {
-            console.error("Failed to complete lesson", error);
+            console.error(
+                "Failed to complete lesson",
+                error
+            );
 
             alert(
                 error.response?.data?.message ||
@@ -303,8 +345,8 @@ const StudentCourseDetails = () => {
                         <span>Instructor</span>
                         <strong>{course.instructorName}</strong>
                     </div>
-
                 </div>
+
             </div>
 
             {/* Course Progress */}
@@ -349,7 +391,6 @@ const StudentCourseDetails = () => {
                 <aside className="course-outline card">
 
                     <div className="course-outline-header">
-
                         <h2>Course Content</h2>
 
                         <span>
@@ -358,7 +399,6 @@ const StudentCourseDetails = () => {
                                 ? "module"
                                 : "modules"}
                         </span>
-
                     </div>
 
                     {course.modules.length === 0 ? (
@@ -373,7 +413,9 @@ const StudentCourseDetails = () => {
                             {course.modules.map((module) => {
 
                                 const isExpanded =
-                                    expandedModules.includes(module.id);
+                                    expandedModules.includes(
+                                        module.id
+                                    );
 
                                 return (
                                     <div
@@ -385,7 +427,9 @@ const StudentCourseDetails = () => {
                                             type="button"
                                             className="student-module-header"
                                             onClick={() =>
-                                                toggleModule(module.id)
+                                                toggleModule(
+                                                    module.id
+                                                )
                                             }
                                         >
                                             <div>
@@ -402,9 +446,10 @@ const StudentCourseDetails = () => {
                                             </div>
 
                                             <span className="module-toggle">
-                                                {isExpanded ? "−" : "+"}
+                                                {isExpanded
+                                                    ? "−"
+                                                    : "+"}
                                             </span>
-
                                         </button>
 
                                         {isExpanded && (
@@ -598,6 +643,107 @@ const StudentCourseDetails = () => {
                 </section>
 
             </div>
+
+            {/* Quizzes */}
+            <section className="student-course-quizzes card">
+
+                <div className="course-outline-header">
+                    <div>
+                        <h2>Quizzes</h2>
+                        <span>
+                            {quizzes.length}{" "}
+                            {quizzes.length === 1
+                                ? "quiz"
+                                : "quizzes"}{" "}
+                            available
+                        </span>
+                    </div>
+                </div>
+
+                {quizLoading && (
+                    <div className="loading-state">
+                        Loading quizzes...
+                    </div>
+                )}
+
+                {!quizLoading && quizError && (
+                    <div className="error-message">
+                        {quizError}
+                    </div>
+                )}
+
+                {!quizLoading &&
+                    !quizError &&
+                    quizzes.length === 0 && (
+                        <div className="empty-state">
+                            <p>
+                                No quizzes available for this course yet.
+                            </p>
+                        </div>
+                    )}
+
+                {!quizLoading &&
+                    !quizError &&
+                    quizzes.length > 0 && (
+                        <div className="quiz-list">
+
+                            {quizzes.map((quiz) => (
+                                <div
+                                    key={quiz.id}
+                                    className="quiz-card"
+                                >
+
+                                    <div className="quiz-card-content">
+
+                                        <h3>{quiz.title}</h3>
+
+                                        {quiz.description && (
+                                            <p>
+                                                {quiz.description}
+                                            </p>
+                                        )}
+
+                                        <div className="quiz-info">
+
+                                            <span>
+                                                Duration:{" "}
+                                                {quiz.durationMinutes}{" "}
+                                                minutes
+                                            </span>
+
+                                            <span>
+                                                Questions:{" "}
+                                                {quiz.questions.length}
+                                            </span>
+
+                                            <span>
+                                                Pass:{" "}
+                                                {quiz.passPercentage}%
+                                            </span>
+
+                                        </div>
+
+                                    </div>
+
+                                    <button
+                                        type="button"
+                                        className="start-quiz-button"
+                                        onClick={() =>
+                                            navigate(
+                                                `/student/quizzes/${quiz.id}`
+                                            )
+                                        }
+                                    >
+                                        Start Quiz
+                                    </button>
+
+                                </div>
+                            ))}
+
+                        </div>
+                    )}
+
+            </section>
 
         </div>
     );

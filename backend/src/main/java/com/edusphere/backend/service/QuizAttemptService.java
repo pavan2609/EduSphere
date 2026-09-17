@@ -296,6 +296,7 @@ public class QuizAttemptService {
         return new QuizAttemptStartResponseDto(
                 attempt.getId(),
                 quiz.getId(),
+                quiz.getCourse().getId(),
                 quiz.getTitle(),
                 quiz.getDescription(),
                 quiz.getDurationMinutes(),
